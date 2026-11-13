@@ -13,6 +13,12 @@
   --dd-shadow-book: 0 20px 65px color-mix(in srgb, var(--dd-cover-blue) 20%, transparent), 0 2px 5px color-mix(in srgb, var(--dd-ink) 10%, transparent);
   --dd-shadow-hover: 0 32px 75px color-mix(in srgb, var(--dd-cover-blue) 26%, transparent);
   --dd-shadow-dialog: 0 18px 60px color-mix(in srgb, var(--dd-ink) 25%, transparent);
+  --dd-paper-edge: 2px 2px 0 var(--dd-paper-soft), 3px 3px 0 var(--dd-line), 5px 5px 0 var(--dd-paper-soft);
+  --dd-cover-pad: clamp(24px, 6.7cqw, 48px); --dd-cover-display: clamp(32px, 8.9cqw, 64px);
+  --dd-cover-small: clamp(11px, 1.8cqw, 13px); --dd-cover-mast: clamp(28px, 6.2cqw, 44px);
+  --dd-cover-trim: clamp(10px, 2.2cqw, 16px); --dd-cover-gap: clamp(8px, 1.67cqw, 12px);
+  --dd-cover-heading-gap: clamp(12px, 3.35cqw, 24px); --dd-cover-footer-gap: clamp(16px, 4.4cqw, 32px);
+  --dd-cover-bottom-size: clamp(14px, 2.9cqw, 21px); --dd-cover-number-size: clamp(36px, 7.5cqw, 54px);
   --dd-gutter: linear-gradient(90deg, transparent 47.6%, color-mix(in srgb, var(--dd-ink) 3%, transparent) 49.1%, color-mix(in srgb, var(--dd-ink) 12%, transparent) 50%, color-mix(in srgb, var(--dd-ink) 3%, transparent) 50.9%, transparent 52.4%);
   --dd-motion-ui: 180ms; --dd-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dd-motion-leaf: 9s; --dd-motion-cup: 6.7s; --dd-motion-steam: 3.8s;
@@ -34,7 +40,7 @@ button:disabled { cursor: default; }
 #position { font-size: var(--dd-text-sm); color: var(--dd-ink-2); font-variant-numeric: tabular-nums; }
 .dd-toc-button { display: flex; align-items: center; gap: var(--dd-space-2); padding-inline: var(--dd-space-2); background: transparent; border-color: transparent; }
 .dd-toc-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.dd-reader { position: relative; width: calc(100% - var(--dd-space-6)); max-width: var(--dd-page-width); margin: var(--dd-space-3) auto var(--dd-space-8); }
+.dd-reader { position: relative; container-type: inline-size; width: calc(100% - var(--dd-space-6)); max-width: var(--dd-page-width); margin: var(--dd-space-3) auto var(--dd-space-8); }
 .dd-magazine { position: relative; width: 100%; }
 .dd-page { display: flex; flex-direction: column; min-width: 0; padding: var(--dd-space-6); background: var(--dd-paper); box-shadow: var(--dd-shadow-book); margin: 0 0 var(--dd-space-5); overflow-wrap: anywhere; }
 body[data-enhanced="true"] .dd-page { margin-bottom: 0; cursor: pointer; }
@@ -102,7 +108,7 @@ blockquote { font: var(--dd-text-lg)/1.8 var(--dd-font-serif); border-left: 3px 
 .dd-turn svg { display: block; width: 18px; height: 24px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linejoin: round; stroke-linecap: round; }.dd-turn-previous { margin-left: -16px; }.dd-turn-next { margin-right: -16px; }.dd-turn:disabled { visibility: hidden; pointer-events: none; }
 .dd-flip-scene { position: fixed; inset: 0; z-index: 6; pointer-events: none; perspective: 2000px; perspective-origin: 50% 45%; }
 .dd-flip-leaf { position: absolute; transform-style: preserve-3d; will-change: transform; }
-.dd-leaf-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; background: var(--dd-paper); box-shadow: var(--dd-shadow-book); }.dd-leaf-back { transform: rotateY(180deg); }
+.dd-leaf-face { position: absolute; inset: 0; container-type: inline-size; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; background: var(--dd-paper); box-shadow: var(--dd-shadow-book); }.dd-leaf-back { transform: rotateY(180deg); }
 body .dd-sheet-copy { width: 100%; height: 100%; min-height: 0; margin: 0; box-shadow: none; transform: none !important; transition: none; }
 .dd-fold-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--dd-ink), transparent 72%); pointer-events: none; }
 dialog { color: var(--dd-ink); background: var(--dd-paper); border: 1px solid var(--dd-line); border-radius: var(--dd-radius); width: min(90vw, 540px); max-height: 85dvh; padding: var(--dd-space-5); box-shadow: var(--dd-shadow-dialog); overscroll-behavior: contain; }
@@ -113,15 +119,21 @@ dialog::backdrop { background: color-mix(in srgb, var(--dd-ink) 32%, transparent
 @media (min-width: 640px) { .dd-reader { width: calc(100% - 128px); }.dd-page { padding: var(--dd-space-7); }.dd-cover { min-height: 920px; }.dd-turn-previous { margin-left: -58px; }.dd-turn-next { margin-right: -58px; } }
 @media (min-width: 960px) {
   body[data-mode="book"] .dd-reader { max-width: calc(var(--dd-page-width) * 2); width: calc(100% - 144px); }
-  body[data-mode="book"] .dd-reader[data-cover="true"] { max-width: var(--dd-page-width); width: calc((100vw - 144px) * .5); }
+  body[data-mode="book"] .dd-reader[data-cover="true"] { max-width: var(--dd-page-width); width: min(calc((100vw - 144px) * .5), max(360px, calc((100svh - 112px) * .66))); }
   body[data-mode="book"] .dd-magazine { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); box-shadow: var(--dd-shadow-book); }
   body[data-mode="book"] .dd-page { min-height: var(--dd-page-min); box-shadow: none; }
   body[data-mode="book"] .dd-magazine:not(.dd-cover-view)::after { content: ''; position: absolute; inset: 0; background: var(--dd-gutter); pointer-events: none; }
   body[data-mode="book"] .dd-magazine.dd-cover-view { display: block; box-shadow: none; }
-  body[data-mode="book"] .dd-cover { box-shadow: var(--dd-shadow-book); }
+  body[data-mode="book"] .dd-cover { min-height: 0; padding: var(--dd-cover-pad); box-shadow: var(--dd-paper-edge), var(--dd-shadow-book); }
+  .dd-cover-masthead { padding-bottom: var(--dd-cover-trim); }.dd-cover-masthead strong { font-size: var(--dd-cover-mast); }
+  .dd-cover-masthead > span, .dd-page .dd-cover-kicker, .dd-cover .dd-folio { font-size: var(--dd-cover-small); }
+  .dd-cover-heading { margin-top: var(--dd-cover-heading-gap); }.dd-page .dd-cover-kicker { margin-bottom: var(--dd-cover-gap); }
+  .dd-cover h1 { font-size: var(--dd-cover-display); }.dd-cover .dd-photo-art { margin-block: var(--dd-cover-gap); }
+  .dd-cover-bottom p { font-size: var(--dd-cover-bottom-size); }.dd-cover-number { font-size: var(--dd-cover-number-size); }
+  .dd-cover > .dd-cover-bottom { margin-bottom: var(--dd-cover-footer-gap); }.dd-cover .dd-folio { padding-top: var(--dd-cover-gap); }
 }
 @media (hover: hover) and (pointer: fine) {
-  .dd-reader[data-cover="true"][data-turning="false"] .dd-cover:hover, .dd-reader[data-cover="true"] .dd-cover:focus-visible { transform: perspective(1600px) rotateX(var(--dd-cover-rx, -1deg)) rotateY(var(--dd-cover-ry, 1.5deg)) translateY(-4px); box-shadow: var(--dd-shadow-hover); }
+  .dd-reader[data-cover="true"][data-turning="false"] .dd-cover:hover, .dd-reader[data-cover="true"] .dd-cover:focus-visible { transform: perspective(1600px) rotateX(var(--dd-cover-rx, -1deg)) rotateY(var(--dd-cover-ry, 1.5deg)) translateY(-4px); box-shadow: var(--dd-paper-edge), var(--dd-shadow-hover); }
   .dd-cover:hover::after { opacity: .7; }
   .dd-turn:not(:disabled):hover { background: color-mix(in srgb, var(--dd-paper) 70%, transparent); transform: scale(1.1); }
   .dd-toc-button:hover { color: var(--dd-cover-blue); } a:hover { text-decoration: underline; }

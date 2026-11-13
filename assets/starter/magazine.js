@@ -16,6 +16,7 @@
   const sceneElements = [...document.querySelectorAll('[data-scene]')];
   const inView = new Set();
   let index = 0;
+  let selectedPage = 0;
   let printing = false;
   let clock = 0;
   let frameId = 0;
@@ -111,7 +112,7 @@
     return desktop.matches && bounded > 0 ? 1 + Math.floor((bounded - 1) / 2) * 2 : bounded;
   }
   function render() {
-    index = normalized(index);
+    index = normalized(selectedPage);
     const count = desktop.matches && index > 0 ? 2 : 1;
     document.body.dataset.mode = 'book';
     reader.dataset.cover = String(index === 0);
@@ -157,7 +158,9 @@
     const destination = direction > 0 ? newPages[0] : newPages[newPages.length - 1];
     const destinationRect = destination.getBoundingClientRect();
     const width = old.rect.width;
-    const height = Math.max(old.rect.height, destinationRect.height);
+    const height = old.rect.height;
+    const scaleX = destinationRect.width / width;
+    const scaleY = destinationRect.height / height;
     const spread = desktop.matches && index > 0;
     let endLeft;
     if (direction > 0) endLeft = spread ? destinationRect.right : destinationRect.left + width;
@@ -173,15 +176,21 @@
     }
     const leaf = document.createElement('div');
     leaf.className = 'dd-flip-leaf';
-    Object.assign(leaf.style, { left: `${old.rect.left}px`, top: `${old.rect.top}px`, width: `${width}px`, height: `${height}px`, transformOrigin: direction > 0 ? 'left center' : 'right center' });
+    Object.assign(leaf.style, { left: `${old.rect.left}px`, top: `${old.rect.top}px`, width: `${width}px`, height: `${height}px`, transformOrigin: direction > 0 ? 'left top' : 'right top' });
     const front = document.createElement('div'); front.className = 'dd-leaf-face dd-leaf-front'; front.append(old.copy);
     const back = document.createElement('div'); back.className = 'dd-leaf-face dd-leaf-back'; back.append(snapshot(destination));
+    // Lay out the reverse at its real destination size, then fit it to the
+    // outgoing sheet. The parent finishes at reciprocal scale: no final reflow.
+    Object.assign(back.style, {
+      width: `${destinationRect.width}px`, height: `${destinationRect.height}px`, transformOrigin: 'left top',
+      transform: `translateX(${width}px) rotateY(180deg) scale(${1 / scaleX}, ${1 / scaleY})`
+    });
     leaf.append(front, back); scene.append(leaf); document.body.append(scene);
     reader.dataset.turning = 'true';
     const timing = { duration: 480, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' };
     const animation = leaf.animate([
       { transform: 'translate3d(0, 0, 0) rotateY(0deg)' },
-      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0) rotateY(${direction > 0 ? -180 : 180}deg)` }
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0) rotateY(${direction > 0 ? -180 : 180}deg) scale(${scaleX}, ${scaleY})` }
     ], timing);
     const extras = [];
     for (const face of [front, back]) {
@@ -202,6 +211,7 @@
     clearTextClick();
     const target = Math.max(0, Math.min(value, pages.length - 1));
     const nextIndex = normalized(target);
+    selectedPage = target;
     if (endTurn) endTurn();
     if (nextIndex === index) {
       if (updateHistory && location.hash !== `#${pages[target].id}`) history.pushState(null, '', `#${pages[target].id}`);
@@ -225,6 +235,7 @@
   function fromHash(animate = true) {
     let id;
     try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+    if (!id) { navigate(0, false, animate); return; }
     const found = pages.findIndex(page => page.id === id);
     if (found >= 0) navigate(found, false, animate);
   }
@@ -264,21 +275,28 @@
   });
   cover.addEventListener('pointermove', event => {
     if (!finePointer.matches || reduced.matches || index !== 0 || endTurn) return;
-    const rect = cover.getBoundingClientRect();
-    cover.style.setProperty('--dd-cover-rx', `${(0.5 - (event.clientY - rect.top) / rect.height) * 3}deg`);
-    cover.style.setProperty('--dd-cover-ry', `${((event.clientX - rect.left) / rect.width - .5) * 4}deg`);
+    // Measure the stationary surface, not the tilted page: no pointer feedback loop.
+    const rect = book.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+    cover.style.setProperty('--dd-cover-rx', `${(0.5 - y) * 3}deg`);
+    cover.style.setProperty('--dd-cover-ry', `${(x - .5) * 4}deg`);
   });
   cover.addEventListener('pointerleave', () => { cover.style.removeProperty('--dd-cover-rx'); cover.style.removeProperty('--dd-cover-ry'); });
 
   for (const [n, page] of pages.entries()) {
     const link = document.createElement('a');
-    link.href = `#${page.id}`; link.textContent = `${n === 0 ? '封面' : String(n).padStart(2, '0')}　${page.dataset.title}`;
-    link.addEventListener('click', event => { event.preventDefault(); dialog.close(); navigate(n); });
+    link.href = `#${page.id}`; link.textContent = n === 0 ? '封面' : `${String(n).padStart(2, '0')}　${page.dataset.title}`;
+    link.addEventListener('click', event => { event.preventDefault(); dialog.close(String(n)); });
     document.querySelector('#toc-links').append(link);
   }
-  tocOpen.addEventListener('click', () => { clearTextClick(); dialog.showModal(); syncMotion(); });
+  tocOpen.addEventListener('click', () => { clearTextClick(); dialog.returnValue = ''; dialog.showModal(); syncMotion(); });
   document.querySelector('#toc-close').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => { tocOpen.focus(); syncMotion(); });
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue !== '') navigate(Number(dialog.returnValue));
+    else tocOpen.focus();
+    syncMotion();
+  });
   previous.addEventListener('click', () => turn(-1));
   next.addEventListener('click', () => turn(1));
   window.addEventListener('hashchange', () => fromHash());
@@ -287,6 +305,7 @@
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); turn(event.key === 'ArrowRight' ? 1 : -1); }
   });
   desktop.addEventListener('change', () => { clearTextClick(); if (endTurn) endTurn(); render(); });
+  window.addEventListener('resize', () => { clearTextClick(); if (endTurn) endTurn(); });
   reduced.addEventListener('change', () => { if (endTurn) endTurn(); syncMotion(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTextClick(); if (endTurn) endTurn(); } syncMotion(); });
   window.addEventListener('beforeprint', () => { clearTextClick(); if (endTurn) endTurn(); printing = true; syncMotion(); });
