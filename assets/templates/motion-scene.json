@@ -1,0 +1,17 @@
+{
+  "id": "editorial-collage",
+  "purpose": "以物件的轻微独立运动表现阅读与实践之间的停顿",
+  "designSpace": { "width": 640, "height": 480 },
+  "staticComposition": "主体位于中心偏下，卫星物件围绕主体，标题安全区在上方",
+  "layers": [
+    { "id": "paper", "kind": "background", "motion": "none", "z": 0 },
+    { "id": "subject", "kind": "image-group", "anchor": [0.5, 0.8], "motion": "none", "z": 2 },
+    { "id": "prop-a", "kind": "transparent-image", "anchor": [0.5, 0.7], "translateY": [-4, 4], "rotateDeg": [-1.2, 1.2], "periodMs": 5300, "phaseMs": -1400, "z": 3 },
+    { "id": "prop-b", "kind": "transparent-image", "anchor": [0.5, 0.5], "translateX": [-3, 3], "translateY": [-6, 6], "rotateDeg": [-1.5, 1.5], "periodMs": 6700, "phaseMs": -3200, "z": 3 },
+    { "id": "caption", "kind": "html-text", "motion": "none", "z": 5 }
+  ],
+  "stopsWhen": ["user-paused", "reduced-motion", "offscreen", "document-hidden", "printing", "unmounted"],
+  "fallback": "为本期导出构图完整的合成静帧，并保留 HTML 图注",
+  "mobile": "保留主体与必要道具，重新布局，减少装饰和位移幅度",
+  "validation": ["检查极限姿态", "两个时刻的内部层变化不同", "暂停后保持稳定", "恢复仅一条循环", "小屏无碰撞"]
+}

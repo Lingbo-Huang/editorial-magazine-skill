@@ -1,0 +1,4 @@
+interface:
+  display_name: "Editorial Magazine · 艺术杂志"
+  short_description: "从整期编辑与艺术指导到分层动态图和阅读器，制作可编辑的精致电子杂志"
+  default_prompt: "使用 $editorial-magazine，依据包内设计解剖、艺术指导和模块规范，将我的内容编成一份美观、可读的动态杂志。先确定视觉命题和页面节奏，细化每个元素与图层运动，再交付可编辑网页及真实验证记录。"
