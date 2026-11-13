@@ -1,5 +1,5 @@
 page_id,reading_order,section,editorial_job,source,layout_family,primary_focus,visual_asset,motion_purpose,mobile_order,print_fallback
-cover,0,封面,提出本期问题,本期原创,封面,主标题,本期主视觉,可选轻微运动,刊名-标题-图-进入,封面静帧
+cover,0,封面,提出本期问题,本期原创,封面,主标题,本期主视觉,可选轻微运动,刊名-标题-动态主视觉-整页点击,封面静帧
 note,1,刊首语,说明选题理由,编辑原创,正文,编辑命题,无,静止,标题-正文-署名,完整正文
 contents,2,目录,帮助选择路径,页面模型,目录,文章标题,无,仅交互反馈,条目顺序,真实页码
 collage,3,专题开篇,建立问题情境,本期原创,标题与拼贴,标题和主体,分层拼贴,表达主题的物件微动,标题-导语-图-图注,合成静帧

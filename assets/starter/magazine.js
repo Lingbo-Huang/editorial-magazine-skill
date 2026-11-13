@@ -2,35 +2,35 @@
   'use strict';
   const pages = [...document.querySelectorAll('.dd-page')];
   const book = document.querySelector('.dd-magazine');
+  const reader = document.querySelector('.dd-reader');
   const toolbar = document.querySelector('.dd-toolbar');
   const pagination = document.querySelector('.dd-pagination');
   const previous = document.querySelector('#previous');
   const next = document.querySelector('#next');
-  const modeButton = document.querySelector('#mode');
-  const motionButton = document.querySelector('#motion');
-  const themeButton = document.querySelector('#theme');
   const dialog = document.querySelector('#toc-dialog');
   const tocOpen = document.querySelector('#toc-open');
+  const cover = document.querySelector('#cover');
   const desktop = matchMedia('(min-width: 960px)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
   const sceneElements = [...document.querySelectorAll('[data-scene]')];
   const inView = new Set();
   let index = 0;
-  let continuous = false;
-  let userPaused = false;
   let printing = false;
   let clock = 0;
   let frameId = 0;
   let lastFrame = 0;
   let lastPaint = 0;
   let fieldRunning = false;
+  let endTurn = null;
+  let pointerStart = null;
+  let textClickTimer = 0;
   const fieldScene = document.querySelector('[data-scene="field"]');
   const canvas = fieldScene.querySelector('canvas');
   const context = canvas.getContext('2d');
   let palette;
   let canvasWidth = 640;
   let canvasHeight = 480;
-
   function readPalette() {
     const css = getComputedStyle(document.documentElement);
     palette = { blue: css.getPropertyValue('--dd-cover-blue').trim(), ink: css.getPropertyValue('--dd-ink').trim() };
@@ -97,118 +97,217 @@
   }
 
   function syncMotion() {
-    const allowed = !userPaused && !reduced.matches && !document.hidden && !printing;
+    const allowed = !reduced.matches && !document.hidden && !printing && !dialog.open;
     for (const scene of sceneElements) {
-      const running = allowed && inView.has(scene) && !scene.closest('.dd-page').hidden;
-      scene.dataset.running = String(running);
+      scene.dataset.running = String(allowed && inView.has(scene) && !scene.closest('.dd-page').hidden);
     }
     fieldRunning = !!context && fieldScene.dataset.running === 'true';
     if (fieldRunning && !frameId) { lastFrame = 0; lastPaint = 0; frameId = requestAnimationFrame(tick); }
     if (!fieldRunning && frameId) { cancelAnimationFrame(frameId); frameId = 0; lastFrame = 0; }
-    motionButton.textContent = reduced.matches ? '已减少动态效果' : userPaused ? '播放动图' : '暂停动图';
-    motionButton.setAttribute('aria-pressed', String(userPaused || reduced.matches));
-    motionButton.disabled = reduced.matches;
   }
 
   function normalized(value) {
     const bounded = Math.max(0, Math.min(value, pages.length - 1));
-    return !continuous && desktop.matches && bounded > 0 ? 1 + Math.floor((bounded - 1) / 2) * 2 : bounded;
+    return desktop.matches && bounded > 0 ? 1 + Math.floor((bounded - 1) / 2) * 2 : bounded;
   }
-
-  function render(focus = false, focusIndex = index) {
+  function render() {
     index = normalized(index);
     const count = desktop.matches && index > 0 ? 2 : 1;
-    document.body.dataset.mode = continuous ? 'continuous' : 'book';
+    document.body.dataset.mode = 'book';
+    reader.dataset.cover = String(index === 0);
+    if (!endTurn) reader.dataset.turning = 'false';
     book.classList.toggle('dd-cover-view', index === 0);
-    pages.forEach((page, n) => { page.hidden = !continuous && (n < index || n >= index + count); });
+    pages.forEach((page, n) => { page.hidden = n < index || n >= index + count; });
     previous.disabled = index === 0;
     next.disabled = index + count >= pages.length;
-    pagination.hidden = continuous;
-    document.querySelector('#position').textContent = continuous ? '连续阅读 · 试刊号' : index === 0 ? '封面 · 试刊号' : `${index}${count === 2 && index + 1 < pages.length ? `–${index + 1}` : ''} / ${pages.length - 1}`;
-    modeButton.setAttribute('aria-pressed', String(continuous));
-    modeButton.textContent = continuous ? '双页 / 单页阅读' : '连续阅读';
+    pagination.hidden = index === 0;
+    document.querySelector('#position').textContent = index === 0 ? '创刊号' : `${String(index).padStart(2, '0')}${count === 2 && index + 1 < pages.length ? ` — ${String(index + 1).padStart(2, '0')}` : ''}`;
     document.querySelectorAll('#toc-links a').forEach((link, n) => {
-      if (n === focusIndex) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+      if (n >= index && n < index + count) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
     });
     syncMotion(); sizeCanvas();
-    if (focus) {
-      pages[focusIndex].focus({ preventScroll: true });
-      if (continuous) pages[focusIndex].scrollIntoView({ block: 'start' });
-      else window.scrollTo({ top: 0, behavior: 'instant' });
-    }
   }
 
-  function fromHash(focus = false) {
+  // Snapshot only the outgoing sheet. Live content remains semantic and selectable.
+  function snapshot(page) {
+    const copy = page.cloneNode(true);
+    const originalLayers = page.querySelectorAll('.dd-layer, .dd-steam, .dd-book-leaf');
+    const copiedLayers = copy.querySelectorAll('.dd-layer, .dd-steam, .dd-book-leaf');
+    originalLayers.forEach((layer, n) => {
+      copiedLayers[n].style.transform = getComputedStyle(layer).transform;
+      copiedLayers[n].style.opacity = getComputedStyle(layer).opacity;
+      copiedLayers[n].style.animation = 'none';
+    });
+    page.querySelectorAll('canvas').forEach((source, n) => {
+      const target = copy.querySelectorAll('canvas')[n];
+      target.getContext('2d')?.drawImage(source, 0, 0);
+    });
+    [copy, ...copy.querySelectorAll('[id]')].forEach(element => element.removeAttribute('id'));
+    copy.removeAttribute('role'); copy.removeAttribute('tabindex');
+    copy.hidden = false; copy.setAttribute('inert', '');
+    copy.setAttribute('aria-hidden', 'true');
+    copy.querySelectorAll('[data-scene]').forEach(scene => { scene.dataset.running = 'false'; });
+    copy.classList.add('dd-sheet-copy');
+    return copy;
+  }
+
+  function animateTurn(old, direction) {
+    if (reduced.matches || typeof book.animate !== 'function') return;
+    const newPages = pages.filter(page => !page.hidden);
+    const destination = direction > 0 ? newPages[0] : newPages[newPages.length - 1];
+    const destinationRect = destination.getBoundingClientRect();
+    const width = old.rect.width;
+    const height = Math.max(old.rect.height, destinationRect.height);
+    const spread = desktop.matches && index > 0;
+    let endLeft;
+    if (direction > 0) endLeft = spread ? destinationRect.right : destinationRect.left + width;
+    else endLeft = destinationRect.left - width;
+    const deltaX = endLeft - old.rect.left;
+    const deltaY = destinationRect.top - old.rect.top;
+    const scene = document.createElement('div');
+    scene.className = 'dd-flip-scene'; scene.setAttribute('aria-hidden', 'true'); scene.setAttribute('inert', '');
+    if (old.stationary) {
+      const still = old.stationary.copy;
+      Object.assign(still.style, { position: 'absolute', left: `${old.stationary.rect.left}px`, top: `${old.stationary.rect.top}px`, width: `${old.stationary.rect.width}px`, height: `${old.stationary.rect.height}px` });
+      scene.append(still);
+    }
+    const leaf = document.createElement('div');
+    leaf.className = 'dd-flip-leaf';
+    Object.assign(leaf.style, { left: `${old.rect.left}px`, top: `${old.rect.top}px`, width: `${width}px`, height: `${height}px`, transformOrigin: direction > 0 ? 'left center' : 'right center' });
+    const front = document.createElement('div'); front.className = 'dd-leaf-face dd-leaf-front'; front.append(old.copy);
+    const back = document.createElement('div'); back.className = 'dd-leaf-face dd-leaf-back'; back.append(snapshot(destination));
+    leaf.append(front, back); scene.append(leaf); document.body.append(scene);
+    reader.dataset.turning = 'true';
+    const timing = { duration: 480, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' };
+    const animation = leaf.animate([
+      { transform: 'translate3d(0, 0, 0) rotateY(0deg)' },
+      { transform: `translate3d(${deltaX}px, ${deltaY}px, 0) rotateY(${direction > 0 ? -180 : 180}deg)` }
+    ], timing);
+    const extras = [];
+    for (const face of [front, back]) {
+      const shade = document.createElement('div'); shade.className = 'dd-fold-shade'; face.append(shade);
+      extras.push(shade.animate([{ opacity: 0 }, { opacity: .38, offset: .45 }, { opacity: 0 }], timing));
+    }
+    if (old.stationary) extras.push(old.stationary.copy.animate([{ opacity: 1 }, { opacity: 1, offset: .7 }, { opacity: 0 }], timing));
+    if (old.wasCover || index === 0) extras.push(book.animate([{ opacity: 0 }, { opacity: 1 }], { ...timing, duration: 400 }));
+    const cleanup = () => {
+      animation.cancel(); extras.forEach(item => item.cancel()); scene.remove();
+      if (endTurn === cleanup) { endTurn = null; reader.dataset.turning = 'false'; }
+    };
+    endTurn = cleanup;
+    animation.finished.then(cleanup, () => { scene.remove(); });
+  }
+
+  function navigate(value, updateHistory = true, animate = true) {
+    clearTextClick();
+    const target = Math.max(0, Math.min(value, pages.length - 1));
+    const nextIndex = normalized(target);
+    if (endTurn) endTurn();
+    if (nextIndex === index) {
+      if (updateHistory && location.hash !== `#${pages[target].id}`) history.pushState(null, '', `#${pages[target].id}`);
+      if (animate) pages[target].focus({ preventScroll: true }); return;
+    }
+    window.getSelection()?.removeAllRanges();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const direction = nextIndex > index ? 1 : -1;
+    const visible = pages.filter(page => !page.hidden);
+    const turningPage = direction > 0 ? visible[visible.length - 1] : visible[0];
+    const stationary = visible.find(page => page !== turningPage);
+    const old = animate && !reduced.matches ? {
+      copy: snapshot(turningPage), rect: turningPage.getBoundingClientRect(), wasCover: index === 0,
+      stationary: stationary ? { copy: snapshot(stationary), rect: stationary.getBoundingClientRect() } : null
+    } : null;
+    index = nextIndex; render();
+    if (updateHistory) history.pushState(null, '', `#${pages[target].id}`);
+    if (animate) pages[target].focus({ preventScroll: true });
+    if (old) animateTurn(old, direction);
+  }
+  function fromHash(animate = true) {
     let id;
     try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
     const found = pages.findIndex(page => page.id === id);
-    if (found < 0) return;
-    index = found;
-    render(focus, found);
-  }
-  function go(value) {
-    const target = pages[Math.max(0, Math.min(value, pages.length - 1))];
-    if (location.hash === `#${target.id}`) { index = value; render(true, value); }
-    else location.hash = target.id;
+    if (found >= 0) navigate(found, false, animate);
   }
   function turn(direction) {
     if (direction > 0 && next.disabled || direction < 0 && previous.disabled) return;
-    if (direction > 0) go(index === 0 ? 1 : index + (desktop.matches ? 2 : 1));
-    else go(index - (desktop.matches && index > 1 ? 2 : 1));
+    navigate(direction > 0 ? index === 0 ? 1 : index + (desktop.matches ? 2 : 1) : index - (desktop.matches && index > 1 ? 2 : 1));
   }
+  function interactive(target) {
+    return !!target.closest('a, button, input, textarea, select, summary, video, audio, [contenteditable], [data-no-page-turn]');
+  }
+  function clearTextClick() { clearTimeout(textClickTimer); textClickTimer = 0; }
+  book.addEventListener('pointerdown', event => {
+    clearTextClick();
+    pointerStart = event.button === 0 ? { x: event.clientX, y: event.clientY, selected: !window.getSelection()?.isCollapsed } : null;
+  });
+  book.addEventListener('pointercancel', () => { pointerStart = null; clearTextClick(); });
+  document.addEventListener('selectionchange', () => { if (!window.getSelection()?.isCollapsed) clearTextClick(); });
+  book.addEventListener('click', event => {
+    const start = pointerStart; pointerStart = null;
+    const page = event.target.closest('.dd-page');
+    if (!page || interactive(event.target) || event.detail > 1 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 8) return;
+    if (start?.selected) { window.getSelection()?.removeAllRanges(); return; }
+    if (!window.getSelection()?.isCollapsed) return;
+    if (!start && event.detail !== 0) return;
+    if (index === 0) { navigate(1); return; }
+    const rect = page.getBoundingClientRect();
+    const direction = desktop.matches ? (page === pages[index] ? -1 : 1) : (event.clientX < rect.left + rect.width * .35 ? -1 : 1);
+    // A brief delay on text lets a second click select a word without turning.
+    // Images, blank paper, the cover and arrows remain immediate.
+    if (event.detail > 0 && event.target.closest('p, h2, h3, figcaption, blockquote, .dd-running, .dd-folio')) {
+      textClickTimer = setTimeout(() => { textClickTimer = 0; if (window.getSelection()?.isCollapsed) turn(direction); }, 250);
+    } else turn(direction);
+  });
+  cover.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate(1); }
+  });
+  cover.addEventListener('pointermove', event => {
+    if (!finePointer.matches || reduced.matches || index !== 0 || endTurn) return;
+    const rect = cover.getBoundingClientRect();
+    cover.style.setProperty('--dd-cover-rx', `${(0.5 - (event.clientY - rect.top) / rect.height) * 3}deg`);
+    cover.style.setProperty('--dd-cover-ry', `${((event.clientX - rect.left) / rect.width - .5) * 4}deg`);
+  });
+  cover.addEventListener('pointerleave', () => { cover.style.removeProperty('--dd-cover-rx'); cover.style.removeProperty('--dd-cover-ry'); });
 
   for (const [n, page] of pages.entries()) {
     const link = document.createElement('a');
     link.href = `#${page.id}`; link.textContent = `${n === 0 ? '封面' : String(n).padStart(2, '0')}　${page.dataset.title}`;
-    link.addEventListener('click', () => { dialog.close(); if (location.hash === link.hash) { index = n; render(true, n); } });
+    link.addEventListener('click', event => { event.preventDefault(); dialog.close(); navigate(n); });
     document.querySelector('#toc-links').append(link);
   }
-  tocOpen.addEventListener('click', () => dialog.showModal());
+  tocOpen.addEventListener('click', () => { clearTextClick(); dialog.showModal(); syncMotion(); });
   document.querySelector('#toc-close').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => tocOpen.focus());
+  dialog.addEventListener('close', () => { tocOpen.focus(); syncMotion(); });
   previous.addEventListener('click', () => turn(-1));
   next.addEventListener('click', () => turn(1));
-  modeButton.addEventListener('click', () => {
-    // Preserve the explicitly selected article; focusing a toolbar control may scroll.
-    continuous = !continuous;
-    render(true);
-    history.replaceState(null, '', `#${pages[index].id}`);
-  });
-  motionButton.addEventListener('click', () => { userPaused = !userPaused; syncMotion(); });
-  themeButton.addEventListener('click', () => {
-    const dark = document.documentElement.classList.toggle('dark');
-    themeButton.setAttribute('aria-pressed', String(dark)); themeButton.textContent = dark ? '浅色' : '深色';
-    readPalette(); drawField(clock);
-  });
-  document.querySelector('#print').addEventListener('click', () => window.print());
-  window.addEventListener('hashchange', () => fromHash(true));
+  window.addEventListener('hashchange', () => fromHash());
   document.addEventListener('keydown', event => {
-    if (continuous || dialog.open || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    if (event.target.closest('input, textarea, select, button, a, [contenteditable="true"]')) return;
+    if (dialog.open || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || interactive(event.target)) return;
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); turn(event.key === 'ArrowRight' ? 1 : -1); }
   });
-  desktop.addEventListener('change', () => render());
-  reduced.addEventListener('change', syncMotion);
-  document.addEventListener('visibilitychange', syncMotion);
-  window.addEventListener('beforeprint', () => { printing = true; syncMotion(); });
+  desktop.addEventListener('change', () => { clearTextClick(); if (endTurn) endTurn(); render(); });
+  reduced.addEventListener('change', () => { if (endTurn) endTurn(); syncMotion(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTextClick(); if (endTurn) endTurn(); } syncMotion(); });
+  window.addEventListener('beforeprint', () => { clearTextClick(); if (endTurn) endTurn(); printing = true; syncMotion(); });
   window.addEventListener('afterprint', () => { printing = false; syncMotion(); });
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => { if (entry.isIntersecting) inView.add(entry.target); else inView.delete(entry.target); });
     syncMotion();
   }, { threshold: .05 });
   sceneElements.forEach(scene => observer.observe(scene));
-  const resizeObserver = new ResizeObserver(sizeCanvas);
-  resizeObserver.observe(fieldScene);
-  // Keep anchor targets below the wrapping toolbar, including enlarged text.
+  const resizeObserver = new ResizeObserver(sizeCanvas); resizeObserver.observe(fieldScene);
   const toolbarObserver = new ResizeObserver(entries => {
     const height = entries[0].borderBoxSize?.[0]?.blockSize;
     if (height) document.documentElement.style.setProperty('--dd-toolbar-height', `${height}px`);
   });
   toolbarObserver.observe(toolbar);
-  window.addEventListener('pagehide', () => { if (frameId) cancelAnimationFrame(frameId); frameId = 0; fieldRunning = false; });
+  window.addEventListener('pagehide', () => { clearTextClick(); if (endTurn) endTurn(); if (frameId) cancelAnimationFrame(frameId); frameId = 0; fieldRunning = false; });
   window.addEventListener('pageshow', syncMotion);
   readPalette();
   if (context) { canvas.hidden = false; fieldScene.querySelector('.dd-field-poster').setAttribute('hidden', ''); drawField(0); }
-  toolbar.hidden = false; pagination.hidden = false;
-  fromHash(); render();
+  toolbar.hidden = false;
+  cover.setAttribute('role', 'button'); cover.tabIndex = 0; cover.setAttribute('aria-label', '翻开 BaiLian 杂志');
+  document.body.dataset.enhanced = 'true';
+  render(); fromHash(false);
 })();

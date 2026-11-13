@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="BaiLian动态样刊：从一个问题开始，让阅读走向实践。">
   <title>BaiLian · 学以致用</title>
+  <link rel="preload" as="image" href="media/reader-at-desk.png">
   <link rel="stylesheet" href="magazine.css">
   <script src="magazine.js" defer></script>
 </head>
@@ -13,32 +14,38 @@
 <header class="dd-toolbar" hidden>
   <a href="#cover" class="dd-wordmark">BaiLian</a>
   <span id="position" role="status" aria-live="polite"></span>
-  <div class="dd-actions">
-    <button id="toc-open" type="button">目录</button>
-    <button id="mode" type="button" aria-pressed="false">连续阅读</button>
-    <button id="motion" type="button" aria-pressed="false">暂停动图</button>
-    <button id="theme" type="button" aria-pressed="false">深色</button>
-    <button id="print" type="button">打印</button>
-  </div>
+  <button id="toc-open" class="dd-toc-button" type="button" aria-label="打开目录"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h14"/></svg><span>目录</span></button>
 </header>
+<div class="dd-reader" data-cover="true">
 <main id="magazine" class="dd-magazine" tabindex="-1">
   <article class="dd-page dd-cover" id="cover" data-title="封面" tabindex="-1">
-    <header class="dd-running"><strong>BaiLian</strong><span>创刊试样<br>2026.11</span></header>
-    <div class="dd-cover-kicker">把阅读，带回真实的问题里。</div>
-    <h1>学以<br><em>致用。</em></h1>
-    <div class="dd-cover-lines" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-    <div class="dd-cover-bottom"><p>从一张纸开始<br>让想法慢慢长出形状</p><a class="dd-start" href="#note">打开本期</a></div>
-    <footer class="dd-folio"><span>学习 · 实践 · 复盘</span><span>试刊号</span></footer>
+    <header class="dd-cover-masthead"><strong>BaiLian</strong><span>学习与实践<br>创刊号 / 2026</span></header>
+    <div class="dd-cover-heading"><p class="dd-cover-kicker">读过的东西，如何真正留下来</p><h1>把读过的，<br><em>变成自己的。</em></h1></div>
+    <div class="dd-photo-art" data-scene="cover">
+      <div class="dd-art-disc" aria-hidden="true"></div>
+      <div class="dd-reader-cutout">
+        <img src="media/reader-at-desk.png" width="1254" height="1254" alt="男生坐在木桌前，专注地阅读一本打开的书。" decoding="async">
+        <div class="dd-live-book" aria-hidden="true"><span class="dd-book-leaf"></span><span class="dd-book-leaf"></span><span class="dd-book-leaf"></span></div>
+      </div>
+      <div class="dd-cup-cutout dd-layer">
+        <img src="media/reading-cup.png" width="1254" height="1254" alt="桌边的一杯咖啡" decoding="async">
+        <svg class="dd-cup-steam" viewBox="0 0 80 80" aria-hidden="true"><path class="dd-steam" d="M28 70C7 48 48 36 28 10"/><path class="dd-steam" d="M49 67C28 46 67 35 49 4"/></svg>
+      </div>
+    </div>
+    <div class="dd-cover-bottom"><p>从书页出发，<br>在一次次尝试中找到答案。</p><span class="dd-cover-number">01</span></div>
+    <footer class="dd-folio"><span>关于阅读，也关于行动</span><span>BaiLian</span></footer>
   </article>
 
   <article class="dd-page" id="note" data-title="刊首语" tabindex="-1">
     <header class="dd-running"><span>BaiLian</span><span>刊首语</span></header>
-    <h2>留一点空白，<br>给自己的答案。</h2>
-    <p class="dd-lead">有些内容读过就过去了。另一些，会在我们下一次动手时重新出现。</p>
-    <p>这一期从一个小问题开始：怎样让今天读到的东西，在明天真正派上用场？不妨暂时收起长长的收藏夹，只挑一个此刻正在困扰你的问题。</p>
-    <p>写下自己的理解，做一次足够小的尝试，再把结果带回纸上。让阅读留下痕迹，也让新的疑问有地方生长。</p>
-    <blockquote>读到这里时，<br>你最想试一试的是什么？</blockquote>
-    <p class="dd-caption">本期为原创版式与交互试样，文字和图形用于演示。没有转载参考刊物的正文或素材。</p>
+    <p class="dd-section-number">写在前面</p>
+    <h2 class="dd-letter-title">让知识<br>在手中发生。</h2>
+    <p class="dd-letter-lead">合上书以后，<br>真正的阅读才刚刚开始。</p>
+    <p>我们常常记得读过什么，却不一定说得清它改变了什么。一段解释在纸面上很顺畅，到了自己的问题面前，仍然可能无从下手。</p>
+    <p>BaiLian 想留住的，是这两者之间的过程：把一句话换成自己的解释，为一个判断找出适用的条件，再用一次足够小的实践，看看理解是否站得住。</p>
+    <p>所以，这份杂志里既有阅读，也有动作；既留下判断，也留下疑问。那些不符合预期的结果，同样值得占据一页。</p>
+    <blockquote>不急着收集更多答案。<br>先让一个问题，在手中变得清楚。</blockquote>
+    <p class="dd-letter-signature">BaiLian<br><span>关于学习与实践的编辑手记</span></p>
     <footer class="dd-folio"><span>写在前面</span><span>01</span></footer>
   </article>
 
@@ -46,64 +53,36 @@
     <header class="dd-running"><span>本期精选</span><span>本期目录</span></header>
     <h2>从问题出发。</h2>
     <nav aria-label="本期文章"><ol class="dd-contents">
-      <li><a href="#collage"><span>03</span><div><h3>给灵感一个落点</h3><p>一本笔记，一杯茶，一个还没想透的问题。</p></div></a></li>
+      <li><a href="#collage"><span>03</span><div><h3>为什么读懂了，却还做不出来</h3><p>从一句解释，到一次独立的判断。</p></div></a></li>
       <li><a href="#practice"><span>04</span><div><h3>做一个小实验</h3><p>带着具体预期动手，把观察与解释分开。</p></div></a></li>
       <li><a href="#field"><span>05</span><div><h3>看见变化的形状</h3><p>在点与线之间，重新观察整体。</p></div></a></li>
       <li><a href="#closing"><span>06</span><div><h3>把问题带回去</h3><p>为下一次尝试留下一个清楚的起点。</p></div></a></li>
     </ol></nav>
-    <p class="dd-caption">本期包含两幅动态视觉。阅读时可以随时暂停，也可以切换到连续阅读。</p>
+    <p class="dd-caption">沿着纸页往下读，也可以从一个正在困扰你的问题开始。</p>
     <footer class="dd-folio"><span>本期目录</span><span>02</span></footer>
   </article>
 
-  <article class="dd-page" id="collage" data-title="给灵感一个落点" tabindex="-1">
+  <article class="dd-page" id="collage" data-title="为什么读懂了，却还做不出来" tabindex="-1">
     <header class="dd-running"><span>学习手记</span><span>从一张纸开始</span></header>
-    <h2>给灵感<br>一个落点。</h2>
-    <p class="dd-lead">不必急着把每个念头都变成答案。</p>
-    <figure class="dd-scene dd-collage" data-scene="collage">
-      <svg viewBox="0 0 640 470" role="img" aria-labelledby="collage-title collage-desc">
-        <title id="collage-title">桌上的学习物件</title>
-        <desc id="collage-desc">中央是展开的笔记本，周围有铅笔、杯子、日历和植物。各物件以不同节奏轻轻移动，代表阅读、记录与实践的片刻。</desc>
-        <defs><pattern id="paper-grain" width="11" height="13" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r="0.5" fill="var(--dd-ink)" opacity="0.08"/></pattern></defs>
-        <rect width="640" height="470" fill="var(--dd-paper-soft)"/>
-        <rect width="640" height="470" fill="url(#paper-grain)"/>
-        <circle cx="328" cy="230" r="145" fill="var(--dd-art-warm)"/>
-        <g class="dd-layer dd-book-shadow" aria-hidden="true"><ellipse cx="313" cy="373" rx="173" ry="19" fill="var(--dd-ink)" opacity="0.10"/></g>
-        <g class="dd-layer dd-notebook">
-          <path d="M145 179 L293 194 L464 162 L493 330 L317 370 L171 350 Z" fill="var(--dd-paper)" stroke="var(--dd-paper)" stroke-width="13" stroke-linejoin="round"/>
-          <path d="M145 179 L293 194 L317 370 L171 350 Z" fill="var(--dd-art-light)" stroke="var(--dd-ink)" stroke-width="2"/>
-          <path d="M293 194 L464 162 L493 330 L317 370 Z" fill="var(--dd-paper)" stroke="var(--dd-ink)" stroke-width="2"/>
-          <path d="M171 216 L265 226 M178 244 L270 253 M184 272 L277 282 M190 302 L284 311 M321 222 L437 199 M326 247 L447 223 M331 274 L453 249 M337 302 L459 278" fill="none" stroke="var(--dd-ink-3)" stroke-width="2" opacity="0.55"/>
-          <path d="M295 195 L321 378 L335 364 L346 367 L320 190" fill="var(--dd-cover-blue)"/>
-        </g>
-        <g class="dd-layer dd-pencil">
-          <path d="M491 36 L513 44 L450 195 L428 204 L428 180 Z" fill="var(--dd-paper)" stroke="var(--dd-paper)" stroke-width="12"/>
-          <path d="M492 39 L510 46 L451 188 L433 181 Z" fill="var(--dd-cover-blue)" stroke="var(--dd-ink)" stroke-width="2"/>
-          <path d="M433 181 L429 204 L451 188" fill="var(--dd-art-warm)" stroke="var(--dd-ink)" stroke-width="2"/>
-        </g>
-        <g class="dd-layer dd-cup">
-          <ellipse cx="119" cy="118" rx="67" ry="30" fill="var(--dd-paper)"/>
-          <path d="M153 77 C204 61 200 128 156 124" fill="none" stroke="var(--dd-paper)" stroke-width="18"/>
-          <path d="M68 70 L78 119 Q117 146 157 117 L164 69 Z" fill="var(--dd-cover-blue)" stroke="var(--dd-paper)" stroke-width="7"/>
-          <ellipse cx="116" cy="69" rx="47" ry="17" fill="var(--dd-paper)"/>
-          <ellipse cx="116" cy="70" rx="39" ry="11" fill="var(--dd-ink)"/>
-          <g class="dd-steam"><path d="M101 47 Q85 27 104 13 M126 46 Q146 30 127 9" fill="none" stroke="var(--dd-ink-3)" stroke-width="2.5" opacity="0.6"/></g>
-        </g>
-        <g class="dd-layer dd-calendar">
-          <path d="M63 319 L161 301 L184 412 L86 430 Z" fill="var(--dd-paper)" stroke="var(--dd-paper)" stroke-width="11"/>
-          <path d="M63 319 L161 301 L184 412 L86 430 Z" fill="var(--dd-art-light)" stroke="var(--dd-ink)" stroke-width="2"/>
-          <path d="M69 344 L167 326 M94 339 L110 424 M119 334 L136 420 M144 330 L161 416 M74 366 L171 348 M80 388 L176 370 M84 408 L180 391" fill="none" stroke="var(--dd-ink-3)" stroke-width="1"/>
-          <path d="M124 356 L148 351 L152 373 L128 377 Z" fill="var(--dd-art-warm)"/>
-        </g>
-        <g class="dd-layer dd-plant">
-          <path d="M549 354 Q539 293 560 263 M547 329 Q517 296 510 280" fill="none" stroke="var(--dd-ink)" stroke-width="3"/>
-          <path d="M558 293 Q549 251 591 247 Q602 285 558 293 M541 320 Q494 318 496 275 Q537 270 541 320" fill="var(--dd-art-green)" stroke="var(--dd-paper)" stroke-width="6"/>
-          <path d="M515 350 L582 350 L571 406 L526 406 Z" fill="var(--dd-art-warm)" stroke="var(--dd-paper)" stroke-width="7"/>
-        </g>
-      </svg>
-      <figcaption>先把问题留下。答案可以晚一点再来。</figcaption>
+    <h2 class="dd-article-title">为什么读懂了，<br>却还做不出来？</h2>
+    <p class="dd-article-meta">学习手记　/　阅读与实践</p>
+    <p class="dd-article-intro">理解一个解释，和独立完成一次判断，中间还隔着一段需要亲手走过的路。</p>
+    <figure class="dd-photo-figure">
+      <div class="dd-photo-art" data-scene="collage">
+      <div class="dd-art-disc" aria-hidden="true"></div>
+      <div class="dd-reader-cutout">
+        <img src="media/reader-at-desk.png" width="1254" height="1254" alt="男生坐在木桌前，专注地阅读一本打开的书。" decoding="async">
+        <div class="dd-live-book" aria-hidden="true"><span class="dd-book-leaf"></span><span class="dd-book-leaf"></span><span class="dd-book-leaf"></span></div>
+      </div>
+      <div class="dd-cup-cutout dd-layer">
+        <img src="media/reading-cup.png" width="1254" height="1254" alt="桌边的一杯咖啡" decoding="async">
+        <svg class="dd-cup-steam" viewBox="0 0 80 80" aria-hidden="true"><path class="dd-steam" d="M28 70C7 48 48 36 28 10"/><path class="dd-steam" d="M49 67C28 46 67 35 49 4"/></svg>
+      </div>
+    </div>
+      <figcaption>把问题带到桌前。翻过一页，也为自己的理解留下一点痕迹。</figcaption>
     </figure>
-    <p>先记下让你停住的那句话，再写一句自己的解释。等真正动手时，回来看看：最初的理解，哪里准确，哪里还需要修改？</p>
-    <footer class="dd-folio"><span>独立图层 · 原创插画</span><span>03</span></footer>
+    <p>下次读到一个让你点头的观点，先停一会儿：如果关掉这篇文章，你会怎样向别人解释？如果条件变了，它还成立吗？</p>
+    <footer class="dd-folio"><span>阅读与实践</span><span>03</span></footer>
   </article>
 
   <article class="dd-page" id="practice" data-title="做一个小实验" tabindex="-1">
@@ -131,7 +110,7 @@
       <figcaption>抽象生成视觉，不代表实测数据或计算架构。</figcaption>
     </figure>
     <p>局部在变化，整体仍然有自己的秩序。看问题时，也试着在细节和全貌之间来回切换。</p>
-    <footer class="dd-folio"><span>动态点阵 · 原创视觉</span><span>05</span></footer>
+    <footer class="dd-folio"><span>视觉札记</span><span>05</span></footer>
   </article>
 
   <article class="dd-page" id="closing" data-title="把问题带回去" tabindex="-1">
@@ -140,12 +119,16 @@
     <p class="dd-lead">不必在今天完成所有事。</p>
     <p>挑一段值得继续思考的内容，把你最想验证的地方写下来。下次开始时，你就有了一个清楚的起点。</p>
     <div class="dd-writing"><p>我想验证的是：</p><span></span><span></span><span></span></div>
-    <p class="dd-caption">这份试刊展示成刊与动态阅读机制。后续正式刊物可用自己的文章、实践记录和授权素材替换本期内容。</p>
+    <p class="dd-caption">愿下一次翻开时，你已经多了一点自己的发现。</p>
     <a href="#cover">回到封面</a>
     <footer class="dd-folio"><span>BaiLian · 试刊号</span><span>06</span></footer>
   </article>
 </main>
-<nav class="dd-pagination" aria-label="杂志翻页" hidden><button id="previous" type="button">上一页</button><button id="next" type="button">下一页</button></nav>
+<nav class="dd-pagination" aria-label="杂志翻页" hidden>
+  <button id="previous" class="dd-turn dd-turn-previous" type="button" aria-label="上一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4-8 8 8 8"/></svg></button>
+  <button id="next" class="dd-turn dd-turn-next" type="button" aria-label="下一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 4 8 8-8 8"/></svg></button>
+</nav>
+</div>
 <dialog id="toc-dialog" aria-labelledby="toc-title"><div class="dd-dialog-top"><h2 id="toc-title">本刊目录</h2><button id="toc-close" type="button">关闭</button></div><nav id="toc-links" aria-label="跳到页面"></nav></dialog>
 <noscript><p class="dd-noscript">当前以连续静态版阅读。浏览器打印可保存全部内容。</p></noscript>
 </body>
