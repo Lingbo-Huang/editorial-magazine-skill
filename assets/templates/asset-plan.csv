@@ -1,0 +1,3 @@
+asset_id,status,purpose,page_ids,source_file,source_and_usage,source_dimensions,target_frame,focus_xy_0_1,protected_rect_xywh_0_1,crop_strategy,display_width_css_px,target_dpr,retained_width_fraction,required_source_width_px,independent_layers,motion_bounds,planned_export,alt,review
+topic-main,planning-example,专题摄影,topic-open,,待取得并确认使用范围,,桌面4:3手机按主体调整,0.50;0.55,0.20;0.15;0.60;0.80,保护手与主体不可满足则改框,600,2,0.75,1600,主组静止,无运动,media/topic-main-1600.webp,填写真实对象与动作,取得素材后核实焦点与保护区
+topic-scene,planning-example,分层动态图,topic-open,,待创作并确认发布范围,,按独立场景坐标系排版,,,整体contain保留关键动作,,,,,主组;物件;阴影;蒸汽,按最大位移与旋转逐层核对,media/topic-scene-still.webp,填写场景意义并另有正文解释,数秒循环极限与静止帧分别核验
